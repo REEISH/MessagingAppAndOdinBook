@@ -1,0 +1,96 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id               String    @id @default(uuid())
+  name             String
+  password         String
+  profilePic       String?
+  createdAt        DateTime  @default(now())
+  comments         Comment[]
+  following        Follow[]  @relation("following")
+  followers        Follow[]  @relation("follower")
+  likes            Like[]
+  messagesReceived Message[] @relation("ReceivedMessages")
+  messagesSent     Message[] @relation("SentMessages")
+  posts            Post[]
+  groups           Group[]   @relation("GroupMembers")
+}
+
+model Follow {
+  id          String   @id @default(uuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+  follower    User     @relation("following", fields: [followerId], references: [id])
+  following   User     @relation("follower", fields: [followingId], references: [id])
+
+  @@unique([followerId, followingId])
+}
+
+model Post {
+  id        String    @id @default(uuid())
+  content   String?   @db.VarChar(500)
+  mediaUrl  String?
+  mediaType MediaType @default(NONE)
+  createdAt DateTime  @default(now())
+  authorId  String
+  comments  Comment[]
+  likes     Like[]
+  author    User      @relation(fields: [authorId], references: [id])
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String   @db.VarChar(500)
+  createdAt DateTime @default(now())
+  postId    String
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
+
+model Like {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  postId    String
+  userId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([postId, userId])
+}
+
+model Group {
+  id        String    @id @default(uuid())
+  name      String
+  createdAt DateTime  @default(now())
+  messages  Message[]
+  members   User[]    @relation("GroupMembers")
+}
+
+model Message {
+  id         String    @id @default(uuid())
+  content    String?   @db.VarChar(500)
+  mediaUrl   String?
+  mediaType  MediaType @default(NONE)
+  createdAt  DateTime  @default(now())
+  senderId   String
+  receiverId String?
+  groupId    String?
+  group      Group?    @relation(fields: [groupId], references: [id])
+  receiver   User?     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  sender     User      @relation("SentMessages", fields: [senderId], references: [id])
+}
+
+enum MediaType {
+  NONE
+  IMAGE
+  AUDIO
+}
