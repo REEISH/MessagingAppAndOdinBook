@@ -26,7 +26,3 @@ A full-stack social media application where users can share content, build their
 * PostgreSQL
 
 
-
-1. **Clone the repository:**
-   ```bash
-   git clone [https://github.com/your-username/your-repo-name.git](https://github.com/your-username/your-repo-name.git)
